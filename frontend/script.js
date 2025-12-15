@@ -1,4 +1,4 @@
-const API_BASE_URL="http://localhost:8000/api/v1";
+const API_BASE_URL="https://mf-backend-geou.onrender.com/api/v1";
 
 function createCollapsibleCard(title, contentHTML, index = null) {
     const id = `card-${Math.random().toString(36).substr(2, 9)}`;
