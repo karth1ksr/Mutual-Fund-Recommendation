@@ -66,7 +66,7 @@ Then produce a RANKING (best to worst) based on:
 - stability
 - rank only for top 3 or top 5 (if available)
 
-Do not return the fund if you don't have all the required details.
+Do not return the fund if you don't have all the required details and urls.
 
 RETURN STRICT JSON ONLY:
 {{
