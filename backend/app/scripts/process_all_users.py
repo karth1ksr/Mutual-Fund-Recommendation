@@ -47,9 +47,7 @@ def main():
                 fund_names = [p["scheme_name"] for p in portfolio]
 
                 # 3. Run Pipeline
-                result, timing = recommendation_service.run_pipeline(fund_names)
-                
-                logger.info(f"Timing: {timing}")
+                result = recommendation_service.run_pipeline(fund_names)
                 
                 # 4. Save to Mongo
                 mongo_db.collection.update_one(
@@ -57,8 +55,9 @@ def main():
                     {"$set": {
                         "user_id": user_id,
                         "budget": budget,
-                        "recommendation": result,
-                        "timing": timing
+                        "user_id": user_id,
+                        "budget": budget,
+                        "recommendation": result
                     }},
                     upsert=True
                 )

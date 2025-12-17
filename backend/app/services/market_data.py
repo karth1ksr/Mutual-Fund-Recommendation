@@ -5,11 +5,21 @@ from app.schemas.fund import FundDetails
 from app.utils.common import extract_json
 import logging
 
+from tenacity import retry, stop_after_attempt, wait_exponential, retry_if_exception_type, before_sleep_log
+import logging
+
 logger = logging.getLogger(__name__)
 
 class MarketDataService:
     BASE_URL = "https://api.perplexity.ai/chat/completions"
     
+    @retry(
+        stop=stop_after_attempt(3),
+        wait=wait_exponential(multiplier=1, min=2, max=10),
+        retry=retry_if_exception_type(Exception),
+        reraise=True,
+        before_sleep=before_sleep_log(logger, logging.WARNING)
+    )
     def fetch_fund_details(self, fund_name: str) -> Optional[FundDetails]:
         """
         Fetch accurate, real fund details for ONE fund using Perplexity.
@@ -52,7 +62,7 @@ JSON FORMAT:
         }
 
         payload = {
-            "model": "sonar",
+            "model": "sonar-pro",
             "messages": [
                 {"role": "system", "content": "Return ONLY JSON."},
                 {"role": "user", "content": prompt}
@@ -74,6 +84,6 @@ JSON FORMAT:
 
         except Exception as e:
             logger.error(f"Perplexity ERROR for {fund_name}: {e}")
-            return None
+            raise e
 
 market_data_service = MarketDataService()

@@ -13,7 +13,10 @@ app/
 │   │   └── router.py              # Router configuration
 │   └── deps.py                    # Dependency Injection (DB session)
 ├── core/
-│   └── config.py                  # Centralized Settings (Env vars)
+│   ├── config.py                  # Centralized Settings (Env vars)
+│   ├── exceptions.py              # Custom Exception Classes
+│   ├── handlers.py                # Global Exception Handlers
+│   └── logging.py                 # Logging Configuration
 ├── db/
 │   ├── base_class.py              # SQLAlchemy Base
 │   ├── mongo.py                   # MongoDB Singleton
@@ -23,8 +26,8 @@ app/
 ├── schemas/
 │   └── fund.py                    # Pydantic Schemas for Validation
 ├── services/
-│   ├── advisor.py                 # Gemini Interaction Logic
-│   ├── market_data.py             # Perplexity Interaction Logic
+│   ├── advisor.py                 # Gemini Interaction Logic (with Retry)
+│   ├── market_data.py             # Perplexity Interaction Logic (with Retry)
 │   ├── portfolio.py               # Portfolio Aggregation Logic
 │   └── recommendation.py          # Core Pipeline Orchestrator
 ├── utils/
@@ -34,30 +37,33 @@ app/
 ├── scripts/
 │   └── process_all_users.py       # Batch processing script
 └── main.py                        # Application Entry Point
+test_concurrency.py                # script to test concurrency
 ```
 
 ## 🚀 Key Improvements
 
 1.  **Modular Service Layer**: Business logic is decoupled from API routes.
-    *   `MarketDataService`: Handles all Perplexity API calls.
-    *   `AdvisorService`: Handles all Gemini API calls.
-    *   `PortfolioService`: Manages complex SQL queries for portfolio aggregation.
-    *   `RecommendationService`: Orchestrates the full recommendation pipeline.
+    *   `MarketDataService`: Handles Perplexity API calls with **automatic retries**.
+    *   `AdvisorService`: Handles Gemini API calls with **automatic retries**.
+    *   `RecommendationService`: Orchestrates the pipeline with **fault tolerance**. Logs execution timing for monitoring instead of storing in DB.
 
 2.  **Centralized Configuration**:
     *   `app/core/config.py` manages all environment variables using `pydantic-settings`.
-    *   Database URIs and API keys are strictly typed and validated.
+    *   New `LOG_LEVEL` setting controls verbosity dynamically.
 
-3.  **Dependency Injection**:
-    *   Database sessions are injected into API endpoints using `Depends(deps.get_db)`, ensuring proper connection closing/pooling.
+3.  **Production-Grade Logging**:
+    *   **Unified Format**: JSON-friendly logs with timestamps (`2024-12-17 10:00:00 - app.service - INFO - ...`).
+    *   **Configurable**: Controlled via environment variables.
+    *   **Startup/Shutdown Tracking**: Logs application lifecycle events.
 
-4.  **Robust Error Handling & Logging**:
-    *   Services use Python's built-in `logging` instead of `print` statements.
-    *   API endpoints return proper HTTP 404/500 errors.
-    *   JSON parsing from LLMs is robust with fallback mechanisms.
+4.  **Robust Error Handling**:
+    *   **Custom Exceptions**: `AppError`, `ExternalServiceError`, `DatabaseError` in `app/core/exceptions.py`.
+    *   **Global Handlers**: `app/core/handlers.py` catches all errors and returns standardized JSON responses.
+    *   **Safety**: Unhandled exceptions are caught to prevent crashing and return a generic 500 error while logging the stack trace internally.
 
-5.  **Validation**:
-    *   Pydantic models in `app/schemas` ensure data integrity for inputs and outputs.
+5.  **Resilience & Reliability**:
+    *   **Automatic Retries**: Uses `tenacity` library to retry failed external API calls (Gemini/Perplexity) with exponential backoff.
+    *   **Graceful Degradation**: The recommendation pipeline continues even if fetching details for a single fund fails, ensuring user experience isn't broken by minor glitches.
 
 ## 🛠️ How to Run
 
@@ -74,3 +80,10 @@ Process recommendations for **ALL** users in the database:
 python -m app.scripts.process_all_users
 ```
 *(Make sure to run this from the project root)*
+
+### 3. Run Concurrency Test
+Stress test the API and Database with simultaneous requests:
+```bash
+python test_concurrency.py
+```
+*   Configurable `CONCURRENT_REQUESTS` and `TEST_USER_ID` inside the script.

@@ -4,6 +4,7 @@ from typing import Optional
 class Settings(BaseSettings):
     PROJECT_NAME: str = "Mutual Fund Recommendation Engine"
     API_V1_STR: str = "/api/v1"
+    LOG_LEVEL: str = "INFO"
     
     # SQL Implementation
     DB_USER: str = "zube-ai"
