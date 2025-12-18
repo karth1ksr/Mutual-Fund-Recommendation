@@ -55,8 +55,6 @@ def main():
                     {"$set": {
                         "user_id": user_id,
                         "budget": budget,
-                        "user_id": user_id,
-                        "budget": budget,
                         "recommendation": result
                     }},
                     upsert=True

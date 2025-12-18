@@ -1,4 +1,5 @@
 from typing import List, Dict, Any, Tuple
+from datetime import datetime
 from app.services.market_data import market_data_service
 from app.services.advisor import advisor_service
 from app.utils.timer import Timer
@@ -16,6 +17,8 @@ class RecommendationService:
         4. Enrich and Rank with Gemini.
         """
         timing = {}
+        start_time = datetime.now()
+        logger.info(f"Recommendation pipeline started at {start_time.isoformat()}")
         
         # 1. Fetch user fund details
         with Timer() as t1:
@@ -68,9 +71,20 @@ class RecommendationService:
                 final_result = None
         timing["gemini_enrich_seconds"] = round(t4.elapsed, 3)
         
-        timing["total_seconds"] = round(sum(timing.values()), 3)
+        
+        end_time = datetime.now()
+        total_duration = (end_time - start_time).total_seconds()
+        timing["total_seconds"] = round(total_duration, 3)
+        
+        logger.info(f"Recommendation pipeline completed at {end_time.isoformat()}")
         logger.info(f"Pipeline Execution Timing: {timing}")
         
+        # Sanitize result to ensure no timing metadata leaks into the DB
+        if final_result and isinstance(final_result, dict):
+            # Explicitly remove typical timing keys if they somehow appeared
+            for key in ["timestamp", "generated_at", "execution_time", "timing"]:
+                final_result.pop(key, None)
+
         return final_result
 
 recommendation_service = RecommendationService()
