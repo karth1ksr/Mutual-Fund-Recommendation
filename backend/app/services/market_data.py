@@ -3,8 +3,7 @@ from typing import Optional
 from app.core.config import settings
 from app.schemas.fund import FundDetails
 from app.utils.common import extract_json
-import logging
-
+from app.utils.prompt_loader import load_prompt
 from tenacity import retry, stop_after_attempt, wait_exponential, retry_if_exception_type, before_sleep_log
 import logging
 
@@ -24,38 +23,10 @@ class MarketDataService:
         """
         Fetch accurate, real fund details for ONE fund using Perplexity.
         """
-        prompt = f"""
-Strictly return JSON. No commentary.
-You should fetch details only from working reliable websites. DO NOT USE LLM.
-
-Fetch accurate real time mutual fund data for: "{fund_name}"
-
-Return ONLY:
-- name
-- category
-- nav
-- aum
-- returns {{1Y, 3Y, 5Y}}
-- risk_level
-- resource_url
-
-Ignore the fund if you can't find any reliable data for all the fields.
-
-JSON FORMAT:
-{{
-  "name": "",
-  "category": "",
-  "nav": "",
-  "aum": "",
-  "returns": {{
-    "1Y": "",
-    "3Y": "",
-    "5Y": ""
-  }},
-  "risk_level": "",
-  "resource_url": ""
-}}
-"""
+        prompt = load_prompt(
+            "market_data_fetch.txt",
+            fund_name=fund_name
+        )
         headers = {
             "Content-Type": "application/json",
             "Authorization": f"Bearer {settings.PERPLEXITY_API_KEY}",

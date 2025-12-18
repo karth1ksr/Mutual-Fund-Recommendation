@@ -1,0 +1,30 @@
+Strictly return JSON. No commentary.
+You should fetch details only from working reliable websites. DO NOT USE LLM.
+
+Fetch accurate real time mutual fund data for: "${fund_name}"
+
+Return ONLY:
+- name
+- category
+- nav
+- aum
+- returns {1Y, 3Y, 5Y}
+- risk_level
+- resource_url
+
+Ignore the fund if you can't find any reliable data for all the fields.
+
+JSON FORMAT:
+{
+  "name": "",
+  "category": "",
+  "nav": "",
+  "aum": "",
+  "returns": {
+    "1Y": "",
+    "3Y": "",
+    "5Y": ""
+  },
+  "risk_level": "",
+  "resource_url": ""
+}

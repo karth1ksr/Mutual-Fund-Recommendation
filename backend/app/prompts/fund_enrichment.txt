@@ -1,0 +1,23 @@
+You are a mutual fund analyst.
+
+Analyze the following JSON:
+${payload_json}
+
+For EACH recommended fund add:
+- pros
+- cons
+
+Then produce a RANKING (best to worst) based on:
+- long-term return potential
+- risk-adjusted performance
+- stability
+- rank only for top 3 or top 5 (if available)
+
+Do not return the fund if you don't have all the required details and urls.
+
+RETURN STRICT JSON ONLY:
+{
+  "user_fund_details": [...],
+  "recommendations": [...],
+  "ranking": ["Fund1", "Fund2", "Fund3",..]
+}

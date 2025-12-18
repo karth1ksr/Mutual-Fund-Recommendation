@@ -1,0 +1,14 @@
+You are a mutual fund expert.
+
+Given these user fund holdings:
+
+${user_fund_details_json}
+
+Recommend EXACTLY 5 mutual funds for diversification.
+Return ONLY their names.
+Do NOT return URLs, NAV, AUM, returns, risk or descriptions.
+
+Strict JSON format:
+{
+  "recommended_fund_names": []
+}

@@ -23,6 +23,10 @@ app/
 │   └── session.py                 # SQL Session Management
 ├── models/
 │   └── mutual_funds.py            # SQLAlchemy Database Models
+├── prompts/                   # Externalized LLM Prompts
+│   ├── fund_enrichment.txt
+│   ├── fund_recommendation.txt
+│   └── market_data_fetch.txt
 ├── schemas/
 │   └── fund.py                    # Pydantic Schemas for Validation
 ├── services/
@@ -33,6 +37,7 @@ app/
 ├── utils/
 │   ├── common.py                  # JSON extraction & misc utils
 │   ├── helpers.py                 # Printing helpers
+│   ├── prompt_loader.py           # Prompt loading utility
 │   └── timer.py                   # Performance timing
 ├── scripts/
 │   └── process_all_users.py       # Batch processing script
@@ -62,8 +67,11 @@ test_concurrency.py                # script to test concurrency
     *   **Safety**: Unhandled exceptions are caught to prevent crashing and return a generic 500 error while logging the stack trace internally.
 
 5.  **Resilience & Reliability**:
-    *   **Automatic Retries**: Uses `tenacity` library to retry failed external API calls (Gemini/Perplexity) with exponential backoff.
     *   **Graceful Degradation**: The recommendation pipeline continues even if fetching details for a single fund fails, ensuring user experience isn't broken by minor glitches.
+
+6.  **Externalized Prompt Management**:
+    *   **Separation of Concerns**: LLM prompts are stored as plain text files in `app/prompts/`, separating prompt engineering from code logic.
+    *   **PromptLoader**: A utility to load and inject variables into prompts safely, facilitating version control and updates without code changes.
 
 ## 🛠️ How to Run
 
