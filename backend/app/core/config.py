@@ -7,11 +7,11 @@ class Settings(BaseSettings):
     LOG_LEVEL: str = "INFO"
     
     # SQL Implementation
-    DB_USER: str = "zube-ai"
-    DB_PASSWORD: str = "ZubeAi@123"
-    DB_HOST: str = "103.73.189.206"
-    DB_PORT: int = 3307
-    DB_NAME: str = "zube_mutual_fund"
+    DB_USER: str = "root"
+    DB_PASSWORD: str = "root"
+    DB_HOST: str = "127.0.0.1"
+    DB_PORT: int = 3306
+    DB_NAME: str = "mutual_funds"
     
     # Mongo Implementation
     MONGO_URI: str = "mongodb://localhost:27017"
