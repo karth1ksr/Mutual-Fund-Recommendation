@@ -13,7 +13,7 @@ logger = logging.getLogger(__name__)
 class RecommendationService:
     def save_user_feedback(self, user_id: str, feedback: str):
         """Part 1: Store User Feedback"""
-        if not mongo_db.db: 
+        if mongo_db.db is None: 
             logger.warning("MongoDB not connected, cannot save feedback")
             return
         mongo_db.db["user_feedback"].insert_one({
@@ -24,7 +24,7 @@ class RecommendationService:
 
     def _get_recent_feedback(self, user_id: str, limit: int = 5) -> List[Dict]:
         """Part 2: Fetch Feedback"""
-        if not mongo_db.db: return []
+        if mongo_db.db is None: return []
         try:
             cursor = mongo_db.db["user_feedback"].find(
                 {"user_id": user_id}
@@ -76,7 +76,7 @@ class RecommendationService:
 
                 # Fetch budget from MongoDB
                 budget = 0
-                if user_id and mongo_db.db:
+                if user_id and mongo_db.db is not None:
                     try:
                         user_doc = mongo_db.collection.find_one({"user_id": user_id})
                         if user_doc:
