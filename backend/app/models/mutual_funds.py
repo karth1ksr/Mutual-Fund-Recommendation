@@ -41,3 +41,24 @@ class MutualFundSchemes(Base):
     id = Column(Integer, primary_key=True, index=True)
     scheme_code = Column(String, index=True)
     scheme_name = Column(String)
+
+
+class PortfolioView(Base):
+    """
+    Represents the new local MySQL table for portfolio aggregation.
+    Fields:
+    - user_id
+    - scheme_name
+    - total_invested_amount
+    - total_units
+    - avg_sip_amount
+    """
+    __tablename__ = "sip_transactions_raw"
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(String)
+    scheme_name = Column(String)
+    
+    total_invested_amount = Column(Float)
+    total_units = Column(Float)
+    avg_sip_amount = Column(Float)
