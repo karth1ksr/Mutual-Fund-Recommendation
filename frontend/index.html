@@ -1,13 +1,15 @@
 <!DOCTYPE html>
 <html>
+
 <head>
     <title>Mutual Fund Recommendation Viewer</title>
     <link rel="stylesheet" href="style.css" />
     <script defer src="script.js"></script>
     <style>
-        
+
     </style>
 </head>
+
 <body>
     <div class="container">
         <h1>Mutual Fund Recommendations</h1>
@@ -18,6 +20,18 @@
         </div>
 
         <div id="output"></div>
+
+        <div id="feedbackContainer"
+            style="display: none; margin-top: 30px; border-top: 1px solid #ccc; padding-top: 20px;">
+            <h2>Provide Feedback</h2>
+            <textarea id="feedbackText" rows="4" style="width: 100%; padding: 10px; margin-bottom: 10px;"
+                placeholder="What do you think about these recommendations? (e.g., Too risky, I prefer tech funds...)"></textarea>
+            <button onclick="submitFeedback()"
+                style="background-color: #28a745; color: white; padding: 10px 20px; border: none; cursor: pointer;">Submit
+                Feedback</button>
+            <p id="feedbackMessage" style="margin-top: 10px; color: green;"></p>
+        </div>
     </div>
 </body>
+
 </html>
