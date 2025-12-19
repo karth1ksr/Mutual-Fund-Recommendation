@@ -1,69 +1,76 @@
 from sqlalchemy.orm import Session
+from sqlalchemy import text
 from app.models.mutual_funds import SIPTransaction, SIPInstallments, SIPSchedule, MutualFundSchemes
 from typing import List, Dict, Any, Optional
 
 class PortfolioService:
+    # PRE-CONFIGURATION: Set your table name here
+    TABLE_NAME = "portfolio_view" 
+
     def get_aggregated_portfolio(self, db: Session, user_id: str) -> List[Dict[str, Any]]:
         """
         Fetch & aggregate user's mutual fund portfolio.
+        Adjusted to use ONLY the fields from the new local MySQL connection:
+        - user_id
+        - scheme_name
+        - total_invested_amount
+        - total_units
+        - avg_sip_amount
         """
-        # Fetch raw MF rows
-        rows = (
-            db.query(
-                SIPTransaction.scheme_code,
-                MutualFundSchemes.scheme_name,
-                SIPTransaction.amount.label("sip_amount"),
-                SIPSchedule.total_invested_amount,
-                SIPSchedule.total_units_allocated, 
-            )
-            .join(SIPSchedule, SIPSchedule.sip_id == SIPTransaction.id)
-            .outerjoin(SIPInstallments, SIPInstallments.sip_id == SIPTransaction.id)
-            .join(MutualFundSchemes, MutualFundSchemes.scheme_code == SIPTransaction.scheme_code)
-            .filter(SIPTransaction.user_id == user_id)
-            .filter(SIPSchedule.total_invested_amount.isnot(None))
-            .all()
-        )
-
-        if not rows:
-            return []
-
-        # Aggregate by scheme_code
+        # Fetch raw MF rows using raw SQL to match the new local DB schema fields
+        # Using the defined TABLE_NAME
+        query = text(f"""
+            SELECT 
+                scheme_name, 
+                total_invested_amount, 
+                total_units, 
+                avg_sip_amount 
+            FROM {self.TABLE_NAME} 
+            WHERE user_id = :user_id
+        """)
+        
+        # Execute the query
+        result = db.execute(query, {"user_id": user_id})
+        
+        # Aggregate by scheme_name (since scheme_code is not available)
         portfolio = {}
 
-        for row in rows:
-            sc = row.scheme_code
+        for row in result:
+            # Access fields by attribute
+            s_name = row.scheme_name
+            t_inv = float(row.total_invested_amount or 0)
+            t_units = float(row.total_units or 0)
+            avg_sip = float(row.avg_sip_amount or 0)
 
-            if sc not in portfolio:
-                portfolio[sc] = {
-                    "scheme_code": sc,
-                    "scheme_name": row.scheme_name,
+            if s_name not in portfolio:
+                portfolio[s_name] = {
+                    "scheme_code": None, # Not available in new source
+                    "scheme_name": s_name,
                     "total_invested_amount": 0.0,
                     "total_units": 0.0,
-                    "sip_amounts": [],
+                    "avg_sip_amounts": [],
                 }
 
-            # Aggregation
-            portfolio[sc]["total_invested_amount"] += float(row.total_invested_amount or 0)
-            portfolio[sc]["total_units"] += float(row.total_units_allocated or 0)
-
-            # SIP collection
-            if row.sip_amount:
-                portfolio[sc]["sip_amounts"].append(float(row.sip_amount))
+            # Aggregation: Sum totals, collect averages from rows (in case of duplicates)
+            portfolio[s_name]["total_invested_amount"] += t_inv
+            portfolio[s_name]["total_units"] += t_units
+            
+            if avg_sip:
+                portfolio[s_name]["avg_sip_amounts"].append(avg_sip)
 
         # Build final aggregated list
         final_list = []
-        for sc, data in portfolio.items():
-            avg_sip = (
-                sum(data["sip_amounts"]) / len(data["sip_amounts"])
-                if data["sip_amounts"] else None
-            )
+        for s_name, data in portfolio.items():
+            # Calculate average of SIP amounts if multiple rows exist
+            sips = data["avg_sip_amounts"]
+            final_avg_sip = (sum(sips) / len(sips)) if sips else None
 
             final_list.append({
-                "scheme_code": sc,
+                "scheme_code": data["scheme_code"],
                 "scheme_name": data["scheme_name"],
                 "total_invested_amount": round(data["total_invested_amount"], 2),
                 "total_units": round(data["total_units"], 4),
-                "avg_sip_amount": round(avg_sip, 2) if avg_sip else None,
+                "avg_sip_amount": round(final_avg_sip, 2) if final_avg_sip else None,
             })
 
         # Select only top 3 if more than 3 funds
@@ -78,9 +85,10 @@ class PortfolioService:
 
     def get_all_user_ids(self, db: Session) -> List[str]:
         """
-        Fetch all distinct user IDs from the transactions table.
+        Fetch all distinct user IDs from the new source.
         """
-        rows = db.query(SIPTransaction.user_id).distinct().all()
-        return [r[0] for r in rows]
+        query = text(f"SELECT DISTINCT user_id FROM {self.TABLE_NAME}")
+        rows = db.execute(query).fetchall()
+        return [r.user_id for r in rows]
 
 portfolio_service = PortfolioService()
