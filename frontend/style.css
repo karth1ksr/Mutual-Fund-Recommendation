@@ -26,7 +26,8 @@
     margin-top: 5px;
     border-radius: 6px;
 }
-.input-group{
+
+.input-group {
     width: 100%;
     display: flex;
     align-items: center;
@@ -34,24 +35,28 @@
     margin-left: 50px;
 }
 
-.input-group #userIdInput{
+.input-group #userIdInput {
     width: 300px;
     border: 2px solid #e2e8f0;
     height: 40px;
     border-radius: 8px;
     padding: 6px 10px;
-    background-color: white ;
+    background-color: white;
 }
-.input-group #userIdInput:hover{
+
+.input-group #userIdInput:hover {
     border: 2px solid #007fff;
 }
-.input-group #userIdInput:active{
+
+.input-group #userIdInput:active {
     border: 2px solid #007fff;
 }
-.input-group #userIdInput:focus-visible{
+
+.input-group #userIdInput:focus-visible {
     border: 2px solid #007fff;
 }
-.input-group button{
+
+.input-group button {
     border: 1px solid #e2e8f0;
     border-radius: 8px;
     display: flex;
@@ -61,4 +66,51 @@
     padding: 4px 8px;
     height: 36px;
     background-color: rgba(188, 242, 110, 1);
+}
+
+
+.feedback-container {
+    display: none;
+    margin-top: 30px;
+    border-top: 1px solid #e2e8f0;
+    padding-top: 20px;
+    width: 100%;
+}
+
+.feedback-container h2 {
+    font-size: 1.2rem;
+    margin-bottom: 10px;
+    color: #333;
+}
+
+.feedback-textarea {
+    width: 100%;
+    border: 2px solid #e2e8f0;
+    border-radius: 8px;
+    padding: 10px;
+    font-family: inherit;
+    resize: vertical;
+    outline: none;
+    transition: border-color 0.2s;
+    margin-bottom: 10px;
+}
+
+.feedback-textarea:hover,
+.feedback-textarea:focus {
+    border-color: #007fff;
+}
+
+.feedback-btn {
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    cursor: pointer;
+    padding: 8px 16px;
+    background-color: rgba(188, 242, 110, 1);
+    color: black;
+    font-weight: bold;
+    transition: opacity 0.2s;
+}
+
+.feedback-btn:hover {
+    opacity: 0.9;
 }

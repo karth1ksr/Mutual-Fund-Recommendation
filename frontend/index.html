@@ -21,15 +21,12 @@
 
         <div id="output"></div>
 
-        <div id="feedbackContainer"
-            style="display: none; margin-top: 30px; border-top: 1px solid #ccc; padding-top: 20px;">
+        <div id="feedbackContainer" class="feedback-container">
             <h2>Provide Feedback</h2>
-            <textarea id="feedbackText" rows="4" style="width: 100%; padding: 10px; margin-bottom: 10px;"
+            <textarea id="feedbackText" class="feedback-textarea" rows="4"
                 placeholder="What do you think about these recommendations? (e.g., Too risky, I prefer tech funds...)"></textarea>
-            <button onclick="submitFeedback()"
-                style="background-color: #28a745; color: white; padding: 10px 20px; border: none; cursor: pointer;">Submit
-                Feedback</button>
-            <p id="feedbackMessage" style="margin-top: 10px; color: green;"></p>
+            <button onclick="submitFeedback()" class="feedback-btn">Submit Feedback</button>
+            <p id="feedbackMessage" style="margin-top: 10px; color: rgba(188, 242, 110, 1);"></p>
         </div>
     </div>
 </body>

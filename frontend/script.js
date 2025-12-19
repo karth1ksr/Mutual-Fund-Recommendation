@@ -1,4 +1,7 @@
+//const API_BASE_URL = "https://mf-backend-geou.onrender.com/api/v1";
 const API_BASE_URL = "http://localhost:8000/api/v1";
+
+let currentUserId = null;
 
 function createCollapsibleCard(title, contentHTML, index = null) {
     const id = `card-${Math.random().toString(36).substr(2, 9)}`;
@@ -22,7 +25,8 @@ function toggleCollapse(id) {
 }
 
 async function fetchRecommendation() {
-    const userId = document.getElementById("userIdInput").value;
+    const userIdInput = document.getElementById("userIdInput");
+    const userId = userIdInput.value.trim();
     const output = document.getElementById("output");
     const feedbackContainer = document.getElementById("feedbackContainer");
 
@@ -34,11 +38,15 @@ async function fetchRecommendation() {
 
     output.innerHTML = "<p>Loading...</p>";
     feedbackContainer.style.display = "none";
+    currentUserId = null; // Reset current user
 
     try {
         const res = await fetch(`${API_BASE_URL}/mf/recommendations/${userId}`);
         if (!res.ok) throw new Error("Failed to fetch");
         const data = await res.json();
+
+        // Store the user ID for feedback submission
+        currentUserId = userId;
 
         const userFunds = data.recommendation.user_fund_details;
         const recs = data.recommendation.recommendations;
@@ -95,7 +103,7 @@ async function fetchRecommendation() {
             output.innerHTML += createCollapsibleCard(rec.name, details, rankIndex);
         });
 
-        // Show feedback container on success
+        // Show feedback container on success (ID is now captured)
         feedbackContainer.style.display = "block";
 
     } catch (err) {
@@ -104,13 +112,19 @@ async function fetchRecommendation() {
 }
 
 async function submitFeedback() {
-    const userId = document.getElementById("userIdInput").value;
     const feedbackText = document.getElementById("feedbackText").value;
     const msg = document.getElementById("feedbackMessage");
 
-    if (!userId || !feedbackText) {
+    // We use currentUserId which was set during fetch
+    if (!currentUserId) {
         msg.style.color = "red";
-        msg.innerText = "Please enter both User ID and feedback.";
+        msg.innerText = "Error: No active user session. Please fetch data first.";
+        return;
+    }
+
+    if (!feedbackText) {
+        msg.style.color = "red";
+        msg.innerText = "Please enter feedback.";
         return;
     }
 
@@ -118,7 +132,7 @@ async function submitFeedback() {
         const res = await fetch(`${API_BASE_URL}/mf/feedback`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ user_id: userId, feedback: feedbackText })
+            body: JSON.stringify({ user_id: currentUserId, feedback: feedbackText })
         });
 
         if (res.ok) {

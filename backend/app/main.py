@@ -22,7 +22,7 @@ app.add_exception_handler(Exception, general_exception_handler)
 # Set all CORS enabled origins
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["https://mutualfundrecommendation.netlify.app"],
+    allow_origins=["https://mutualfundrecommendation.netlify.app", "*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
