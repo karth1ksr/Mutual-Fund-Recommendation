@@ -1,14 +1,31 @@
 You are a mutual fund expert.
 
 Given these user fund holdings:
-
 ${user_fund_details_json}
 
-Recommend EXACTLY 5 mutual funds for diversification.
-Return ONLY their names.
-Do NOT return URLs, NAV, AUM, returns, risk or descriptions.
+And this User Feedback History (if any):
+${user_feedback_json}
 
-Strict JSON format:
+User's Average Monthly Budget: ${user_budget}
+
+Task:
+1. Analyze the User Feedback to identify their preferences (Risk, Category, Interests).
+2. Categorize each feedback entry into: INTERESTED, NOT_INTERESTED, TOO_RISKY, PREFER_DIFFERENT_CATEGORY.
+3. Recommend EXACTLY 5 mutual funds for diversification, strictly adhering to the user's feedback (e.g., avoid funds similar to "NOT_INTERESTED" or "TOO_RISKY" feedback).
+4. Ensure recommended funds are suitable for the User's Budget (e.g. minimum investment amount should be within or near the budget).
+
+Output Strict JSON:
 {
-  "recommended_fund_names": []
+  "feedback_classification": [
+    {
+      "raw_feedback": "string",
+      "category": "INTERESTED | NOT_INTERESTED | TOO_RISKY | PREFER_DIFFERENT_CATEGORY"
+    }
+  ],
+  "recommendations": [
+    {
+      "fund_name": "string",
+      "reason": "string"
+    }
+  ]
 }

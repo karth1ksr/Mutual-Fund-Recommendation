@@ -25,13 +25,16 @@ class AdvisorService:
         reraise=True,
         before_sleep=before_sleep_log(logger, logging.WARNING)
     )
-    def recommend_fund_names(self, user_fund_details: List[dict]) -> Dict[str, List[str]]:
+    def recommend_fund_names(self, user_fund_details: List[dict], user_feedback: List[dict] = [], user_budget: float = 0) -> Dict[str, Any]:
         """
-        Given user fund details, recommend 5 fund NAMES only.
+        Given user fund details, feedback and budget, recommend 5 fund NAMES.
+        Returns dict with keys: 'feedback_classification', 'recommendations'
         """
         prompt = load_prompt(
             "fund_recommendation.txt",
-            user_fund_details_json=json.dumps(user_fund_details, default=str)
+            user_fund_details_json=json.dumps(user_fund_details, default=str),
+            user_feedback_json=json.dumps(user_feedback, default=str),
+            user_budget=str(user_budget)
         )
         try:
             resp = self.client.models.generate_content(
@@ -40,7 +43,7 @@ class AdvisorService:
                 config=types.GenerateContentConfig(temperature=0.2)
             )
             clean = extract_json(resp.text.strip())
-            return clean if clean else {"recommended_fund_names": []}
+            return clean if clean else {"feedback_classification": [], "recommendations": []}
         except Exception as e:
             logger.error(f"Gemini recommendation ERROR: {e}")
             raise e  # Reraise to trigger retry

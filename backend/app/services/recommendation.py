@@ -5,20 +5,54 @@ from app.services.advisor import advisor_service
 from app.utils.timer import Timer
 import logging
 
+from app.db.mongo import mongo_db
+import pymongo
+
 logger = logging.getLogger(__name__)
 
 class RecommendationService:
-    def run_pipeline(self, fund_names: List[str]) -> Dict[str, Any]:
+    def save_user_feedback(self, user_id: str, feedback: str):
+        """Part 1: Store User Feedback"""
+        if not mongo_db.db: 
+            logger.warning("MongoDB not connected, cannot save feedback")
+            return
+        mongo_db.db["user_feedback"].insert_one({
+            "user_id": user_id,
+            "raw_feedback": feedback,
+            "created_at": datetime.now()
+        })
+
+    def _get_recent_feedback(self, user_id: str, limit: int = 5) -> List[Dict]:
+        """Part 2: Fetch Feedback"""
+        if not mongo_db.db: return []
+        try:
+            cursor = mongo_db.db["user_feedback"].find(
+                {"user_id": user_id}
+            ).sort("created_at", pymongo.DESCENDING).limit(limit)
+            
+            # Convert to list and sanitize
+            feedback_list = []
+            for doc in cursor:
+                doc.pop("_id", None)
+                if "created_at" in doc:
+                    doc["created_at"] = doc["created_at"].isoformat()
+                feedback_list.append(doc)
+            return feedback_list
+        except Exception as e:
+            logger.error(f"Error fetching feedback for {user_id}: {e}")
+            return []
+
+    def run_pipeline(self, fund_names: List[str], user_id: str = None) -> Dict[str, Any]:
         """
         Orchestrates the recommendation flow:
         1. Fetch details of user's current funds from Perplexity.
-        2. Get recommendations from Gemini (Funds names).
+        2. Get recommendations from Gemini (Funds names) utilizing User Feedback.
         3. Fetch details of recommended funds from Perplexity.
         4. Enrich and Rank with Gemini.
         """
         timing = {}
         start_time = datetime.now()
-        logger.info(f"Recommendation pipeline started at {start_time.isoformat()}")
+        logger.info(f"Recommendation pipeline started at {start_time.isoformat()} for user {user_id}")
         
         # 1. Fetch user fund details
         with Timer() as t1:
@@ -34,11 +68,30 @@ class RecommendationService:
                     # Continue pipeline even if one fund fails
         timing["fetch_user_fund_seconds"] = round(t1.elapsed, 3)
 
-        # 2. Get Recommended Names
+        # 2. Get Recommended Names (Part 2 & 3)
         with Timer() as t2:
             try:
-                name_response = advisor_service.recommend_fund_names(user_fund_details)
-                recommended_names = name_response.get("recommended_fund_names", [])
+                # Fetch feedback
+                user_feedback = self._get_recent_feedback(user_id) if user_id else []
+
+                # Fetch budget from MongoDB
+                budget = 0
+                if user_id and mongo_db.db:
+                    try:
+                        user_doc = mongo_db.collection.find_one({"user_id": user_id})
+                        if user_doc:
+                            budget = user_doc.get("budget", 0)
+                    except Exception as e:
+                        logger.error(f"Error fetching budget for {user_id}: {e}")
+                
+                name_response = advisor_service.recommend_fund_names(user_fund_details, user_feedback, budget)
+                
+                # Adapter for new response structure
+                if "recommendations" in name_response:
+                    recommended_names = [r["fund_name"] for r in name_response["recommendations"]]
+                else:
+                    recommended_names = name_response.get("recommended_fund_names", [])
+                    
             except Exception as e:
                 logger.error(f"Gemini recommendation failed after retries: {e}")
                 recommended_names = []

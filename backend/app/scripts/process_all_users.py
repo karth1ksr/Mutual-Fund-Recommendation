@@ -47,7 +47,7 @@ def main():
                 fund_names = [p["scheme_name"] for p in portfolio]
 
                 # 3. Run Pipeline
-                result = recommendation_service.run_pipeline(fund_names)
+                result = recommendation_service.run_pipeline(fund_names, user_id=user_id)
                 
                 # 4. Save to Mongo
                 mongo_db.collection.update_one(
