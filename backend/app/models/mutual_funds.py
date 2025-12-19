@@ -61,4 +61,4 @@ class PortfolioView(Base):
     
     total_invested_amount = Column(Float)
     total_units = Column(Float)
-    avg_sip_amount = Column(Float)
+    sip_amount = Column(Float)

@@ -24,28 +24,28 @@ class PortfolioService:
             s_name = row.scheme_name
             t_inv = float(row.total_invested_amount or 0)
             t_units = float(row.total_units or 0)
-            avg_sip = float(row.avg_sip_amount or 0)
+            sip_amt = float(row.sip_amount or 0)
 
             if s_name not in portfolio:
                 portfolio[s_name] = {
                     "scheme_name": s_name,
                     "total_invested_amount": 0.0,
                     "total_units": 0.0,
-                    "avg_sip_amounts": [],
+                    "sip_amounts": [],
                 }
 
-            # Aggregation: Sum totals, collect averages from rows (in case of duplicates)
+            # Aggregation: Sum totals, collect sip amounts for averaging
             portfolio[s_name]["total_invested_amount"] += t_inv
             portfolio[s_name]["total_units"] += t_units
             
-            if avg_sip:
-                portfolio[s_name]["avg_sip_amounts"].append(avg_sip)
+            if sip_amt:
+                portfolio[s_name]["sip_amounts"].append(sip_amt)
 
         # Build final aggregated list
         final_list = []
         for s_name, data in portfolio.items():
             # Calculate average of SIP amounts if multiple rows exist
-            sips = data["avg_sip_amounts"]
+            sips = data["sip_amounts"]
             final_avg_sip = (sum(sips) / len(sips)) if sips else None
 
             final_list.append({
